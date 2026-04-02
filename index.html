@@ -157,7 +157,7 @@ function handToScreen(hx,hy){
   // Camera is at (window.innerWidth-180, 0) with size 180x135
   // hx, hy are normalized [0,1] from video
   // Mirror: hx=0 -> screen right, hx=1 -> screen right-180
-  var sx=(window.innerWidth-180)+hx*180;
+  var sx=(window.innerWidth-180)+(1-hx)*180;
   var sy=hy*135;
   return {x:sx,y:sy};
 }
