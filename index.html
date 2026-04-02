@@ -56,7 +56,7 @@ body{background:#050510;min-height:100vh;display:flex;flex-direction:column;alig
 </div>
 <div id="main-title">Caleb 手势塔罗</div>
 <div id="step-hint" id="stepHint">用手指向一张牌开始</div>
-<div id="card-field" id="cardField"></div>
+<div id="card-field"></div>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466862/camera_utils.min.js"></script>
 <script>
@@ -204,7 +204,9 @@ hands.setOptions({maxNumHands:1,modelComplexity:1,minDetectionConfidence:0.7,min
 hands.onResults(onResults);
 const cam=new Camera(videoEl,{onFrame:async function(){await hands.send({image:videoEl});},width:160,height:120});
 cam.start();
-buildCards();
+window.addEventListener('load', function(){
+  buildCards();
+});
 </script>
 </body>
 </html>
