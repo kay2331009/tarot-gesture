@@ -43,9 +43,8 @@ body{background:#050510;min-height:100vh;display:flex;flex-direction:column;alig
   <canvas id="hand-canvas"></canvas>
 </div>
 <div id="gesture-hint">
-  <div>🖱️ 点击选牌</div>
-  <div>👊 握拳3秒 → 确认</div>
-  <div>🖐️ 张开手 → 取消</div>
+  <div>👊 握拳3秒 → 确认并解读</div>
+  <div>🖐️ 张开手 → 取消选择</div>
   <div class="active" id="gestureStatus">🖐️ 等待手势…</div>
 </div>
 <div id="confirm-ring">
@@ -159,17 +158,28 @@ var cRing=document.getElementById('confirm-ring');
 var cProg=document.getElementById('confirmProgress');
 function updateG(g){
   if(gStatus)gStatus.textContent=g;
-  if(g==='Fist'){
-    if(selectedCard!==null||hoveredCard!==null){
+  if(g==='握拳'){
+    if(selectedCard!==null){
       if(fistStart===0)fistStart=Date.now();
       var pct=Math.min((Date.now()-fistStart)/3000,1);
       cRing.classList.add('active');
       cProg.style.strokeDashoffset=CIRCLE*(1-pct);
       if(pct>=1&&!fistDone){
         fistDone=true;
-        if(hoveredCard!==null&&selectedCard===null)onSelect(hoveredCard);
+        submitQ();
       }
     }
+  }else if(g==='张开手'){
+    fistStart=0;fistDone=false;
+    cRing.classList.remove('active');
+    cProg.style.strokeDashoffset=CIRCLE;
+    // 张开手取消选择
+    if(selectedCard!==null){
+      cardEls[selectedCard].el.classList.remove('selected');
+      selectedCard=null;
+      document.getElementById('step-hint').innerHTML='用手指向一张牌开始';
+    }
+    if(hoveredCard!==null){cardEls[hoveredCard].el.classList.remove('hovered');hoveredCard=null;}
   }else{
     fistStart=0;fistDone=false;
     cRing.classList.remove('active');
@@ -189,9 +199,9 @@ function onResults(results){
   var rUp=Math.abs(r.y-lm[13].y)>0.06;
   var pUp=Math.abs(p.y-lm[17].y)>0.06;
   var td=Math.hypot(t.x-i.x,t.y-i.y);
-  var g='Neutral';
-  if(td<0.05&&!iUp&&!mUp&&!rUp&&!pUp)g='Fist';
-  else if(iUp&&mUp&&rUp&&pUp)g='Open Palm';
+  var g='无手势';
+  if(td<0.05&&!iUp&&!mUp&&!rUp&&!pUp)g='握拳';
+  else if(iUp&&mUp&&rUp&&pUp)g='张开手';
   updateG(g);
 }
 const hands=new Hands({locateFile:function(f){return'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/'+f}});
