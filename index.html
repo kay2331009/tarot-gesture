@@ -22,8 +22,8 @@ body{background:#050510;min-height:100vh;display:flex;flex-direction:column;alig
 #step-hint{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);font-size:0.8rem;color:rgba(200,83,74,0.5);letter-spacing:0.15em;z-index:100;text-align:center;min-width:300px}
 #card-field{position:relative;width:100vw;height:100vh;z-index:10}
 .tarot-card{position:absolute;width:80px;height:136px;cursor:pointer;transition:transform 0.3s,filter 0.3s;transform-style:preserve-3d}
-.tarot-card.hovered{transform:scale(1.15) translateY(-12px);filter:brightness(1.3);z-index:20}
-.tarot-card.selected{transform:scale(1.2) translateY(-18px);z-index:30;animation:selectPulse 0.5s ease}
+.tarot-card:hover{transform:scale(1.1) translateY(-8px);filter:brightness(1.3);z-index:20;cursor:pointer}
+.tarot-card.selected{transform:scale(1.2) translateY(-18px);z-index:30;animation:selectPulse 0.5s ease;cursor:default}
 @keyframes selectPulse{0%{filter:brightness(1)}50%{filter:brightness(2) drop-shadow(0 0 20px rgba(200,83,74,0.9))}100%{filter:brightness(1)}}
 .card-face{width:100%;height:100%;position:absolute;border-radius:8px;backface-visibility:hidden;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .card-back{background:linear-gradient(160deg,#1a0808,#2a1010);border:1.5px solid rgba(200,83,74,0.35);box-shadow:0 0 12px rgba(200,83,74,0.15)}
@@ -43,8 +43,8 @@ body{background:#050510;min-height:100vh;display:flex;flex-direction:column;alig
   <canvas id="hand-canvas"></canvas>
 </div>
 <div id="gesture-hint">
-  <div>🖐️ 指向卡片 → 悬停</div>
-  <div>👊 握拳3秒 → 确认选牌</div>
+  <div>🖱️ 点击选牌</div>
+  <div>👊 握拳3秒 → 确认</div>
   <div>🖐️ 张开手 → 取消</div>
   <div class="active" id="gestureStatus">🖐️ 等待手势…</div>
 </div>
@@ -191,23 +191,7 @@ function onResults(results){
   var td=Math.hypot(t.x-i.x,t.y-i.y);
   var g='Neutral';
   if(td<0.05&&!iUp&&!mUp&&!rUp&&!pUp)g='Fist';
-  else if(td<0.05&&iUp&&!mUp&&!rUp&&!pUp)g='OK';
   else if(iUp&&mUp&&rUp&&pUp)g='Open Palm';
-  if(g==='OK'&&!selectedCard){
-    var hx=(1-i.x)*160,hy=i.y*120;
-    var near=null,md=55;
-    cardEls.forEach(function(c,idx){
-      var d=Math.hypot(c.x-hx*window.innerWidth/160,c.y-hy*window.innerHeight/120);
-      if(d<md){md=d;near=idx;}
-    });
-    if(near!==null&&near!==hoveredCard){
-      if(hoveredCard!==null)cardEls[hoveredCard].el.classList.remove('hovered');
-      hoveredCard=near;
-      cardEls[hoveredCard].el.classList.add('hovered');
-    }
-  }else if(g==='Open Palm'){
-    if(hoveredCard!==null){cardEls[hoveredCard].el.classList.remove('hovered');hoveredCard=null;}
-  }
   updateG(g);
 }
 const hands=new Hands({locateFile:function(f){return'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/'+f}});
