@@ -8,24 +8,23 @@
 <link rel="stylesheet" href="https://fontsapi.zeoseven.com/256/main/result.css">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#050510;min-height:100vh;display:flex;flex-direction:column;align-items:center;font-family:'Huiwen-mincho','Noto Serif SC',serif;color:#f0e6d3;overflow:hidden}
-#camera-wrap{position:fixed;top:16px;right:16px;width:160px;height:120px;border:1px solid rgba(200,83,74,0.3);border-radius:12px;overflow:hidden;z-index:300;background:#000;box-shadow:0 0 20px rgba(200,83,74,0.2)}
+body{background:#050510;min-height:100vh;display:flex;flex-direction:column;align-items:center;font-family:'Huiwen-mincho','Noto Serif SC',serif;color:#f0e6d3;overflow:hidden;user-select:none}
+#camera-wrap{position:fixed;top:16px;right:16px;width:180px;height:135px;border:1px solid rgba(200,83,74,0.3);border-radius:12px;overflow:hidden;z-index:300;background:#000;box-shadow:0 0 20px rgba(200,83,74,0.2)}
 #webcam{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
 #gesture-hint{position:fixed;top:16px;left:16px;font-size:0.7rem;color:rgba(200,83,74,0.6);letter-spacing:0.08em;z-index:300;background:rgba(5,5,16,0.85);padding:10px 14px;border-radius:8px;border:1px solid rgba(200,83,74,0.2);line-height:2}
-#gesture-hint .active{color:#c8534a;font-weight:bold}
 #gesture-status{font-size:0.8rem;margin-top:4px}
 #confirm-ring{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:110px;height:110px;z-index:500;pointer-events:none}
 #confirm-ring.active{display:block}
 #confirm-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
 #confirm-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:#c8534a;letter-spacing:0.1em}
-#gesture-cursor{position:fixed;width:44px;height:44px;border:2px solid rgba(200,83,74,0.8);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);box-shadow:0 0 15px rgba(200,83,74,0.5);display:none;transition:top 0.05s linear,left 0.05s linear}
+#gesture-cursor{position:fixed;width:44px;height:44px;border:2px solid rgba(200,83,74,0.9);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);box-shadow:0 0 15px rgba(200,83,74,0.6);display:none;transition:left 0.06s linear,top 0.06s linear}
 #main-title{position:fixed;top:28px;left:50%;transform:translateX(-50%);font-size:1.1rem;letter-spacing:0.3em;color:#c8534a;text-shadow:0 0 20px rgba(200,83,74,0.4);z-index:100;white-space:nowrap}
 #step-hint{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);font-size:0.8rem;color:rgba(200,83,74,0.5);letter-spacing:0.15em;z-index:100;text-align:center;min-width:300px}
 #card-field{position:relative;width:100vw;height:100vh;z-index:10}
 .tarot-card{position:absolute;width:80px;height:136px;transition:transform 0.25s,filter 0.25s}
-.tarot-card.hovered{transform:scale(1.15) translateY(-12px);filter:brightness(1.4) drop-shadow(0 0 12px rgba(200,83,74,0.5));z-index:20}
-.tarot-card.selected{transform:scale(1.2) translateY(-18px);z-index:30;animation:selectPulse 0.5s ease;filter:brightness(1.2) drop-shadow(0 0 15px rgba(200,83,74,0.5))}
-@keyframes selectPulse{0%{filter:brightness(1)}50%{filter:brightness(2) drop-shadow(0 0 25px rgba(200,83,74,0.9))}100%{filter:brightness(1)}}
+.tarot-card.hovered{transform:scale(1.15) translateY(-12px);filter:brightness(1.5) drop-shadow(0 0 15px rgba(200,83,74,0.6));z-index:20}
+.tarot-card.selected{transform:scale(1.2) translateY(-18px);z-index:30;animation:selectPulse 0.5s ease;filter:brightness(1.3) drop-shadow(0 0 20px rgba(200,83,74,0.7))}
+@keyframes selectPulse{0%{filter:brightness(1)}50%{filter:brightness(2) drop-shadow(0 0 30px rgba(200,83,74,1))}100%{filter:brightness(1)}}
 .card-face{width:100%;height:100%;position:absolute;border-radius:8px;backface-visibility:hidden;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .card-back{background:linear-gradient(160deg,#1a0808,#2a1010);border:1.5px solid rgba(200,83,74,0.35);box-shadow:0 0 12px rgba(200,83,74,0.15)}
 .card-back-inner{width:80%;height:88%;border-radius:6px;position:relative;background-image:linear-gradient(45deg,rgba(200,83,74,0.1)25%,transparent 25%),linear-gradient(-45deg,rgba(200,83,74,0.1)25%,transparent 25%),linear-gradient(45deg,transparent 75%,rgba(200,83,74,0.1)75%),linear-gradient(-45deg,transparent 75%,rgba(200,83,74,0.1)75%);background-size:10px 10px;background-position:0 0,0 5px,5px -5px,-5px 0;background-color:rgba(0,0,0,0.3);border:1px solid rgba(200,83,74,0.2)}
@@ -42,15 +41,16 @@ body{background:#050510;min-height:100vh;display:flex;flex-direction:column;alig
 </head>
 <body>
 
-<div id="loading"><div class="spinner"></div>加载手势模型中…</div>
+<div id="loading"><div class="spinner"></div>初始化中…</div>
 <div class="stars-bg" id="starsBg"></div>
 
 <div id="camera-wrap">
   <video id="webcam" autoplay playsinline></video>
+  <canvas id="skeleton-canvas" style="position:absolute;inset:0;width:100%;height:100%;transform:scaleX(-1)"></canvas>
 </div>
 
 <div id="gesture-hint">
-  <div>👊 握拳停留3秒 → 确认选牌</div>
+  <div>👊 握拳3秒 → 确认选牌</div>
   <div>🖐️ 张开手 → 取消选择</div>
   <div id="gesture-status">⏳ 初始化中…</div>
 </div>
@@ -68,8 +68,8 @@ body{background:#050510;min-height:100vh;display:flex;flex-direction:column;alig
 <div id="step-hint">用握拳指向一张牌，停留3秒选中</div>
 <div id="card-field"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose@0.1.0/dist/handpose.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466862/camera_utils.min.js"></script>
 
 <script>
 var cards=[
@@ -139,8 +139,6 @@ window.submitQ=function(){
 };
 
 // Gesture system
-var model=null;
-var videoEl=document.getElementById('webcam');
 var gCursor=document.getElementById('gesture-cursor');
 var gStatus=document.getElementById('gesture-status');
 var cRing=document.getElementById('confirm-ring');
@@ -148,12 +146,19 @@ var cProg=document.getElementById('confirmProgress');
 var CIRCLE=314.16;
 var fistHoldStart=0;
 var fistDone=false;
+var lastHandX=0;
+var lastHandY=0;
 
+// Camera at top-right: 180x135, mirrored (scaleX -1)
+// hx normalized [0-1], hy normalized [0-1]
+// hx=0 in video = right side of screen
+// hx=1 in video = right of camera view = left part of screen
 function handToScreen(hx,hy){
-  // Camera at top-right, video is 160x120, mirrored (scaleX -1)
-  // hx: 0=left in video = right on screen; hx: 1=right in video = left on screen
-  var sx=window.innerWidth-160+(1-hx)*160;
-  var sy=hy*120;
+  // Camera is at (window.innerWidth-180, 0) with size 180x135
+  // hx, hy are normalized [0,1] from video
+  // Mirror: hx=0 -> screen right, hx=1 -> screen right-180
+  var sx=window.innerWidth-180+(1-hx)*180;
+  var sy=hy*135;
   return {x:sx,y:sy};
 }
 
@@ -167,30 +172,55 @@ function findCardAt(sx,sy){
 }
 
 function detectGesture(lm){
-  // lm[4]=thumb tip, lm[8]=index tip, lm[12]=middle tip, lm[16]=ring tip, lm[20]=pinky tip
-  // lm[3]=thumb IP, lm[6]=index PIP, etc for extended check
-  // Simplified: check if fingertips are above their PIPs (y smaller = higher on screen)
-  var iExt=lm[8].y<lm[6].y-0.02;
-  var mExt=lm[12].y<lm[10].y-0.02;
-  var rExt=lm[16].y<lm[14].y-0.02;
-  var pExt=lm[20].y<lm[18].y-0.02;
-  var thClose=Math.hypot(lm[4].x-lm[8].x,lm[4].y-lm[8].y)<0.07;
+  var thumb=lm[4], idx=lm[8], mid=lm[12], ring=lm[16], pink=lm[20];
+  var idxUp=Math.abs(idx.y-lm[5].y)>0.05;
+  var midUp=Math.abs(mid.y-lm[9].y)>0.05;
+  var ringUp=Math.abs(ring.y-lm[13].y)>0.05;
+  var pinkUp=Math.abs(pink.y-lm[17].y)>0.05;
+  var thumbClose=Math.hypot(thumb.x-idx.x,thumb.y-idx.y)<0.06;
 
-  if(iExt && mExt && rExt && pExt) return '张开手';
-  if(!iExt && !mExt && !rExt && !pExt && thClose) return '握拳';
-  if(iExt && !mExt && !rExt && !pExt) return '指向';
+  if(thumbClose && !idxUp && !midUp && !ringUp && !pinkUp) return '握拳';
+  if(idxUp && midUp && ringUp && pinkUp) return '张开手';
+  if(idxUp && !midUp && !ringUp && !pinkUp && thumbClose) return '指向';
   return '无手势';
 }
 
-function processHand(lm){
-  var wrist=handToScreen(lm[0].x,lm[0].y);
+function onResults(results){
+  var canvas=document.getElementById('skeleton-canvas');
+  var ctx=canvas.getContext('2d');
+  canvas.width=180;canvas.height=135;
+  ctx.clearRect(0,0,180,135);
+
+  if(!results.multiHandLandmarks || results.multiHandLandmarks.length===0){
+    gStatus.textContent='⏳ 检测中…';
+    gCursor.style.display='none';
+    cRing.classList.remove('active');
+    fistHoldStart=0;
+    return;
+  }
+
+  var lm=results.multiHandLandmarks[0];
+
+  // Draw skeleton
+  ctx.strokeStyle='rgba(200,83,74,0.8)';ctx.lineWidth=2;
+  [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]].forEach(function(a){
+    ctx.beginPath();
+    ctx.moveTo(lm[a[0]].x*180,lm[a[0]].y*135);
+    ctx.lineTo(lm[a[1]].x*180,lm[a[1]].y*135);
+    ctx.stroke();
+  });
+  lm.forEach(function(p){ctx.beginPath();ctx.arc(p.x*180,p.y*135,3,0,Math.PI*2);ctx.fillStyle='rgba(200,83,74,0.9)';ctx.fill();});
+
   var gesture=detectGesture(lm);
+
+  // Use wrist (0) as cursor position
+  var wrist=handToScreen(lm[0].x,lm[0].y);
+
   gCursor.style.left=wrist.x+'px';
   gCursor.style.top=wrist.y+'px';
   gStatus.textContent='✋ '+gesture;
 
   var now=Date.now();
-  var cardIdx=findCardAt(wrist.x,wrist.y);
 
   if(gesture==='张开手'){
     fistHoldStart=0;fistDone=false;
@@ -204,6 +234,8 @@ function processHand(lm){
     }
     if(hoveredCard!==null){cardEls[hoveredCard].el.classList.remove('hovered');hoveredCard=null;}
   } else if(gesture==='握拳' || gesture==='指向'){
+    var cardIdx=findCardAt(wrist.x,wrist.y);
+
     if(cardIdx!==null && cardIdx!==hoveredCard){
       if(hoveredCard!==null)cardEls[hoveredCard].el.classList.remove('hovered');
       hoveredCard=cardIdx;
@@ -242,37 +274,30 @@ function processHand(lm){
   }
 }
 
+var videoEl=document.getElementById('webcam');
+
 async function init(){
   try{
-    gStatus.textContent='⏳ 加载模型中…';
-    await tf.ready();
-    model=await handpose.load({maxHands:1});
-    gStatus.textContent='✅ 手势已就绪';
+    gStatus.textContent='⏳ 加载手势模型…';
+    const hands=new Hands({
+      locateFile: function(f){return 'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/'+f}
+    });
+    hands.setOptions({maxNumHands:1,modelComplexity:1,minDetectionConfidence:0.6,minTrackingConfidence:0.5});
+    hands.onResults(onResults);
+
+    const cam=new Camera(videoEl,{
+      onFrame:async function(){
+        await hands.send({image:videoEl});
+      },
+      width:180,height:135
+    });
+    await cam.start();
+
     document.getElementById('loading').style.display='none';
-
-    var stream=await navigator.mediaDevices.getUserMedia({video:{width:160,height:120,facingMode:'user'},audio:false});
-    videoEl.srcObject=stream;
-    await videoEl.play();
-
-    async function detect(){
-      if(videoEl.readyState>=2){
-        try{
-          var preds=await model.estimateHands(videoEl,false);
-          if(preds && preds.length>0){
-            processHand(preds[0].landmarks);
-          } else {
-            gStatus.textContent='⏳ 检测中…';
-            gCursor.style.display='none';
-            cRing.classList.remove('active');
-          }
-        } catch(e){}
-      }
-      requestAnimationFrame(detect);
-    }
-    detect();
+    gStatus.textContent='✅ 手势已就绪';
   } catch(e){
     gStatus.textContent='❌ 摄像头不可用';
-    document.getElementById('loading').innerHTML='<div style="font-size:0.8rem;color:rgba(200,83,74,0.5);max-width:240px;text-align:center">摄像头权限被拒绝或不可用<br><br>请允许摄像头访问</div>';
+    document.getElementById('loading').innerHTML='<div style="font-size:0.8rem;color:rgba(200,83,74,0.5);max-width:240px;text-align:center">请允许摄像头访问<br><br>手势需要在有摄像头的设备上使用</div>';
     console.error(e);
   }
 }
