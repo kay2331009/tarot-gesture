@@ -54,6 +54,9 @@ body{background:#050510;min-height:100vh;display:flex;flex-direction:column;alig
   </svg>
   <div id="confirmText">握拳确认中…</div>
 </div>
+
+<!-- 手势光标 -->
+<div id="gestureCursor" style="display:none;position:fixed;width:50px;height:50px;border:2px solid rgba(200,83,74,0.8);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);box-shadow:0 0 15px rgba(200,83,74,0.5)"></div>
 <div id="main-title">Caleb 手势塔罗</div>
 <div id="step-hint">用手指向一张牌开始</div>
 <div id="cardField"></div>
@@ -118,7 +121,6 @@ function buildCards(){
     el.style.left=(pos.x-40)+'px';
     el.style.top=(pos.y-68)+'px';
     el.style.transform='rotate('+pos.rot+'deg)';
-    el.addEventListener('click',function(){onSelect(i)});
     field.appendChild(el);
     cardEls.push({el,card,x:pos.x,y:pos.y});
   });
@@ -156,24 +158,60 @@ handCanvas.width=160;handCanvas.height=120;
 var gStatus=document.getElementById('gestureStatus');
 var cRing=document.getElementById('confirm-ring');
 var cProg=document.getElementById('confirmProgress');
-function updateG(g){
+var gCursor=document.getElementById('gestureCursor');
+var fistPos={x:0,y:0};
+var fistStart=0;
+var fistDone=false;
+var lastFistPos={x:0,y:0};
+var lastFistTime=0;
+
+function handToScreen(hx,hy){
+  // Camera at top-right, mirrored: left of camera = right of screen
+  // hx, hy in [0,1] (camera normalized)
+  var sx=window.innerWidth-160+(1-hx)*160;
+  var sy=hy*120;
+  return {x:sx,y:sy};
+}
+
+function findCardAt(sx,sy){
+  var near=null,md=55;
+  cardEls.forEach(function(c,idx){
+    var d=Math.hypot(c.x-sx,c.y-sy);
+    if(d<md){md=d;near=idx;}
+  });
+  return near;
+}
+
+function updateG(g,sx,sy){
   if(gStatus)gStatus.textContent=g;
   if(g==='握拳'){
-    if(selectedCard!==null){
+    // 检测是否在同一点附近保持
+    var moved=Math.hypot(sx-lastFistPos.x,sy-lastFistPos.y)>25;
+    if(moved){lastFistPos={x:sx,y:sy};lastFistTime=Date.now();fistStart=0;fistDone=false;}
+    else{
       if(fistStart===0)fistStart=Date.now();
-      var pct=Math.min((Date.now()-fistStart)/3000,1);
+      var held=Date.now()-lastFistTime;
+      var pct=Math.min(held/3000,1);
       cRing.classList.add('active');
       cProg.style.strokeDashoffset=CIRCLE*(1-pct);
-      if(pct>=1&&!fistDone){
+      if(held>=3000&&!fistDone){
         fistDone=true;
-        submitQ();
+        var cardIdx=findCardAt(sx,sy);
+        if(cardIdx!==null){
+          if(selectedCard===null)onSelect(cardIdx);
+          else if(selectedCard===cardIdx)submitQ();
+          else {cardEls[selectedCard].el.classList.remove('selected');onSelect(cardIdx);}
+        }
       }
     }
+    gCursor.style.display='block';
+    gCursor.style.left=sx+'px';
+    gCursor.style.top=sy+'px';
   }else if(g==='张开手'){
-    fistStart=0;fistDone=false;
+    fistStart=0;fistDone=false;lastFistTime=0;
     cRing.classList.remove('active');
     cProg.style.strokeDashoffset=CIRCLE;
-    // 张开手取消选择
+    gCursor.style.display='none';
     if(selectedCard!==null){
       cardEls[selectedCard].el.classList.remove('selected');
       selectedCard=null;
@@ -181,9 +219,10 @@ function updateG(g){
     }
     if(hoveredCard!==null){cardEls[hoveredCard].el.classList.remove('hovered');hoveredCard=null;}
   }else{
-    fistStart=0;fistDone=false;
+    fistStart=0;fistDone=false;lastFistTime=0;
     cRing.classList.remove('active');
     cProg.style.strokeDashoffset=CIRCLE;
+    gCursor.style.display='none';
   }
 }
 function onResults(results){
@@ -199,10 +238,11 @@ function onResults(results){
   var rUp=Math.abs(r.y-lm[13].y)>0.06;
   var pUp=Math.abs(p.y-lm[17].y)>0.06;
   var td=Math.hypot(t.x-i.x,t.y-i.y);
+  var palm=handToScreen((lm[0].x+lm[9].x)/2,(lm[0].y+lm[9].y)/2);
   var g='无手势';
   if(td<0.05&&!iUp&&!mUp&&!rUp&&!pUp)g='握拳';
   else if(iUp&&mUp&&rUp&&pUp)g='张开手';
-  updateG(g);
+  updateG(g,palm.x,palm.y);
 }
 const hands=new Hands({locateFile:function(f){return'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/'+f}});
 hands.setOptions({maxNumHands:1,modelComplexity:1,minDetectionConfidence:0.7,minTrackingConfidence:0.5});
