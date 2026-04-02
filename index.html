@@ -50,7 +50,7 @@ body{background:#050510;min-height:100vh;display:flex;flex-direction:column;alig
 </div>
 
 <div id="gesture-hint">
-  <div>👊 握拳3秒 → 确认选牌</div>
+  <div>☝️ 食指指向 → 选中+3秒确认</div>
   <div>🖐️ 张开手 → 取消选择</div>
   <div id="gesture-status">⏳ 初始化中…</div>
 </div>
@@ -118,7 +118,7 @@ function onSelect(idx){
   if(selectedCard===idx){
     cardEls[idx].el.classList.remove('selected');
     selectedCard=null;
-    document.getElementById('step-hint').innerHTML='用握拳指向一张牌，停留3秒选中';
+    document.getElementById('step-hint').innerHTML='用食指指向一张牌，停留3秒选中';
     return;
   }
   if(selectedCard!==null) cardEls[selectedCard].el.classList.remove('selected');
@@ -171,17 +171,23 @@ function findCardAt(sx,sy){
   return near;
 }
 
+// Simple two-gesture system:
+// - Pointing (index extended) = cursor + select
+// - Open palm = cancel
 function detectGesture(lm){
-  var thumb=lm[4], idx=lm[8], mid=lm[12], ring=lm[16], pink=lm[20];
-  var idxUp=Math.abs(idx.y-lm[5].y)>0.05;
-  var midUp=Math.abs(mid.y-lm[9].y)>0.05;
-  var ringUp=Math.abs(ring.y-lm[13].y)>0.05;
-  var pinkUp=Math.abs(pink.y-lm[17].y)>0.05;
-  var thumbClose=Math.hypot(thumb.x-idx.x,thumb.y-idx.y)<0.06;
+  var idxTip=lm[8], idxPIP=lm[6];
+  var midTip=lm[12], midPIP=lm[10];
+  var ringTip=lm[16], ringPIP=lm[14];
+  var pinkyTip=lm[20], pinkyPIP=lm[18];
 
-  if(thumbClose && !idxUp && !midUp && !ringUp && !pinkUp) return '握拳';
-  if(idxUp && midUp && ringUp && pinkUp) return '张开手';
-  if(idxUp && !midUp && !ringUp && !pinkUp && thumbClose) return '指向';
+  var iExt=idxTip.y<idxPIP.y-0.03;
+  var mExt=midTip.y<midPIP.y-0.03;
+  var rExt=ringTip.y<ringPIP.y-0.03;
+  var pExt=pinkyTip.y<pinkyPIP.y-0.03;
+
+  if(iExt && !mExt && !rExt && !pExt) return '指向';
+  if(!iExt && mExt && rExt && pExt) return '张开手';
+  if(iExt && mExt && rExt && pExt) return '张开手';
   return '无手势';
 }
 
@@ -212,12 +218,6 @@ function onResults(results){
   lm.forEach(function(p){ctx.beginPath();ctx.arc(p.x*180,p.y*135,3,0,Math.PI*2);ctx.fillStyle='rgba(200,83,74,0.9)';ctx.fill();});
 
   var gesture=detectGesture(lm);
-
-  // Use wrist (0) as cursor position
-  var wrist=handToScreen(lm[0].x,lm[0].y);
-
-  gCursor.style.left=wrist.x+'px';
-  gCursor.style.top=wrist.y+'px';
   gStatus.textContent='✋ '+gesture;
 
   var now=Date.now();
@@ -230,11 +230,17 @@ function onResults(results){
     if(selectedCard!==null){
       cardEls[selectedCard].el.classList.remove('selected');
       selectedCard=null;
-      document.getElementById('step-hint').innerHTML='用握拳指向一张牌，停留3秒选中';
+      document.getElementById('step-hint').innerHTML='用食指指向一张牌，停留3秒选中';
     }
     if(hoveredCard!==null){cardEls[hoveredCard].el.classList.remove('hovered');hoveredCard=null;}
-  } else if(gesture==='握拳' || gesture==='指向'){
-    var cardIdx=findCardAt(wrist.x,wrist.y);
+  } else if(gesture==='指向'){
+    // Use index fingertip as cursor
+    var idx=handToScreen(lm[8].x,lm[8].y);
+    gCursor.style.left=idx.x+'px';
+    gCursor.style.top=idx.y+'px';
+    gCursor.style.display='block';
+
+    var cardIdx=findCardAt(idx.x,idx.y);
 
     if(cardIdx!==null && cardIdx!==hoveredCard){
       if(hoveredCard!==null)cardEls[hoveredCard].el.classList.remove('hovered');
@@ -266,10 +272,10 @@ function onResults(results){
       fistHoldStart=0;
       cRing.classList.remove('active');
     }
-    gCursor.style.display='block';
   } else {
     fistHoldStart=0;fistDone=false;
     cRing.classList.remove('active');
+    gCursor.style.display='none';
     if(hoveredCard!==null){cardEls[hoveredCard].el.classList.remove('hovered');hoveredCard=null;}
   }
 }
