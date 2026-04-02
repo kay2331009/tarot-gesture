@@ -206,6 +206,9 @@ const cam=new Camera(videoEl,{onFrame:async function(){await hands.send({image:v
 cam.start();
 window.addEventListener('load', function(){
   buildCards();
+  // debug: verify cards exist
+  var count=document.querySelectorAll('.tarot-card').length;
+  console.log('Cards built:', count);
 });
 </script>
 </body>
