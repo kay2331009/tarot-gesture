@@ -29,7 +29,8 @@ body{background:#050510;min-height:100vh;display:flex;flex-direction:column;alig
 .card-back{background:linear-gradient(160deg,#1a0808,#2a1010);border:1.5px solid rgba(200,83,74,0.35);box-shadow:0 0 12px rgba(200,83,74,0.15)}
 .card-back-inner{width:80%;height:88%;border-radius:6px;position:relative;background-image:linear-gradient(45deg,rgba(200,83,74,0.1)25%,transparent 25%),linear-gradient(-45deg,rgba(200,83,74,0.1)25%,transparent 25%),linear-gradient(45deg,transparent 75%,rgba(200,83,74,0.1)75%),linear-gradient(-45deg,transparent 75%,rgba(200,83,74,0.1)75%);background-size:10px 10px;background-position:0 0,0 5px,5px -5px,-5px 0;background-color:rgba(0,0,0,0.3);border:1px solid rgba(200,83,74,0.2)}
 .card-back-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:32px;height:32px;border:1px solid rgba(200,83,74,0.5);border-radius:50%;background:rgba(26,8,8,0.9);display:flex;align-items:center;justify-content:center}
-.card-name-tag{position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:0.5rem;color:rgba(200,83,74,0.6);letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-name-tag{position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:0.5rem;color:rgba(200,83,74,0.6);letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity 0.3s}
+.tarot-card.selected .card-name-tag{opacity:1}
 .stars-bg{position:fixed;inset:0;z-index:0;pointer-events:none}
 .s{position:absolute;border-radius:50%;background:#fff;animation:tb linear infinite}
 @keyframes tb{0%,100%{opacity:0.2}50%{opacity:1}}
@@ -114,7 +115,7 @@ function buildCards(){
     var el=document.createElement('div');
     el.className='tarot-card';
     el.id='tc'+i;
-    el.innerHTML='<div class="card-face card-back"><div class="card-back-inner"><div class="card-back-center"><svg viewBox="0 0 36 36" fill="none"><circle cx="18" cy="14" r="9" fill="#c8534a" opacity="0.8"/><path d="M18 5 Q20 1 23 3" stroke="#5a3a2a" stroke-width="1.5" fill="none"/></svg></div></div></div><div class="card-name-tag">'+card.name+'</div>';
+    el.innerHTML='<div class="card-face card-back"><div class="card-back-inner"><div class="card-back-center"><svg viewBox="0 0 36 36" fill="none"><circle cx="18" cy="14" r="9" fill="#c8534a" opacity="0.8"/><path d="M18 5 Q20 1 23 3" stroke="#5a3a2a" stroke-width="1.5" fill="none"/></svg></div></div></div><div class="card-name-tag" id="cname'+i+'">'+card.name+'</div>';
     el.style.left=(pos.x-40)+'px';
     el.style.top=(pos.y-68)+'px';
     el.style.transform='rotate('+pos.rot+'deg)';
@@ -124,7 +125,17 @@ function buildCards(){
   });
 }
 function onSelect(idx){
-  if(selectedCard!==null)return;
+  if(selectedCard===idx){
+    // deselect
+    cardEls[idx].el.classList.remove('selected','hovered');
+    selectedCard=null;
+    document.getElementById('step-hint').innerHTML='用手指向一张牌开始';
+    return;
+  }
+  if(selectedCard!==null){
+    // switch selection
+    cardEls[selectedCard].el.classList.remove('selected');
+  }
   selectedCard=idx;
   cardEls.forEach(function(c,i){
     c.el.classList.remove('selected','hovered');
